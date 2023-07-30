@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -50,24 +51,26 @@ public class Save {
     }
 
     private boolean isDuplicate(Path file) {
-        String last = null;
-        String line;
-        try (BufferedReader inputData = new BufferedReader(new FileReader(file.toFile()))) {
-            while (null != (line = inputData.readLine())) {
-                last = line;
+        boolean result = false;
+        try (InputStream inputStream = Files.newInputStream(file)) {
+            String text = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            String[] textSplit = text.split("\n");
+            for (int i = 0; i < textSplit.length; i++) {
+                String[] parts = textSplit[i].replace("<", "")
+                        .replace(">", " ")
+                        .replace("\n", "")
+                        .trim()
+                        .split(" ");
+
+                InputData data = new InputData(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5].charAt(0));
+                if (data.equals(input)) {
+                    return true;
+                }
             }
-        } catch (IOException ex) {
-            System.out.println(ex);
+            return false;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        String[] parts = last.replace("<", "")
-                .replace(">", " ")
-                .replace("\n", "")
-                .trim()
-                .split(" ");
-
-        InputData data = new InputData(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5].charAt(0));
-        return data.equals(input);
     }
 }
 
